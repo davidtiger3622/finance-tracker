@@ -50,20 +50,20 @@ const Transactions = () => {
   if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Transactions</h1>
+    <div className="min-h-screen bg-gray-950 text-white p-4 md:p-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6">
+        <h1 className="text-xl md:text-2xl font-bold">Transactions</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition"
+          className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-semibold transition w-full md:w-auto"
         >
           {showForm ? "Cancel" : "+ Add Transaction"}
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-gray-900 rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">New Transaction</h2>
+        <div className="bg-gray-900 rounded-xl p-4 md:p-6 mb-6">
+          <h2 className="text-base md:text-lg font-semibold mb-4">New Transaction</h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-gray-400 text-sm">Title</label>
@@ -114,7 +114,7 @@ const Transactions = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-green-500 hover:bg-green-600 px-6 py-2 rounded-lg font-semibold transition"
+                className="bg-green-500 hover:bg-green-600 px-6 py-2 rounded-lg font-semibold transition w-full md:w-auto"
               >
                 {submitting ? "Saving..." : "Save Transaction"}
               </button>
@@ -123,47 +123,49 @@ const Transactions = () => {
         </div>
       )}
 
-      <div className="bg-gray-900 rounded-xl p-5">
+      <div className="bg-gray-900 rounded-xl p-4 md:p-5">
         {transactions.length === 0 ? (
-          <p className="text-gray-400">No transactions yet.</p>
+          <p className="text-gray-400 text-sm">No transactions yet.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-gray-400 border-b border-gray-800">
-                <th className="text-left py-2">Title</th>
-                <th className="text-left py-2">Category</th>
-                <th className="text-left py-2">Type</th>
-                <th className="text-left py-2">Date</th>
-                <th className="text-right py-2">Amount</th>
-                <th className="text-right py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((t) => (
-                <tr key={t.id} className="border-b border-gray-800">
-                  <td className="py-3">{t.title}</td>
-                  <td className="py-3 text-gray-400">{t.category}</td>
-                  <td className="py-3">
-                    <span className={`px-2 py-1 rounded text-xs ${t.type === "income" ? "bg-green-900 text-green-400" : "bg-red-900 text-red-400"}`}>
-                      {t.type}
-                    </span>
-                  </td>
-                  <td className="py-3 text-gray-400">{new Date(t.date).toLocaleDateString()}</td>
-                  <td className={`py-3 text-right font-semibold ${t.type === "income" ? "text-green-400" : "text-red-400"}`}>
-                    {t.type === "income" ? "+" : "-"}${t.amount}
-                  </td>
-                  <td className="py-3 text-right">
-                    <button
-                      onClick={() => handleDelete(t.id)}
-                      className="text-red-400 hover:text-red-300 text-xs"
-                    >
-                      Delete
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs md:text-sm min-w-[600px]">
+              <thead>
+                <tr className="text-gray-400 border-b border-gray-800">
+                  <th className="text-left py-2">Title</th>
+                  <th className="text-left py-2">Category</th>
+                  <th className="text-left py-2">Type</th>
+                  <th className="text-left py-2">Date</th>
+                  <th className="text-right py-2">Amount</th>
+                  <th className="text-right py-2">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transactions.map((t) => (
+                  <tr key={t.id} className="border-b border-gray-800">
+                    <td className="py-3">{t.title}</td>
+                    <td className="py-3 text-gray-400">{t.category}</td>
+                    <td className="py-3">
+                      <span className={`px-2 py-1 rounded text-xs ${t.type === "income" ? "bg-green-900 text-green-400" : "bg-red-900 text-red-400"}`}>
+                        {t.type}
+                      </span>
+                    </td>
+                    <td className="py-3 text-gray-400">{new Date(t.date).toLocaleDateString()}</td>
+                    <td className={`py-3 text-right font-semibold ${t.type === "income" ? "text-green-400" : "text-red-400"}`}>
+                      {t.type === "income" ? "+" : "-"}${t.amount}
+                    </td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={() => handleDelete(t.id)}
+                        className="text-red-400 hover:text-red-300 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
