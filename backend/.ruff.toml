@@ -1,0 +1,5 @@
+[lint]
+exclude = ["alembic/versions/*"]
+
+[lint.per-file-ignores]
+"alembic/env.py" = ["E402"]
