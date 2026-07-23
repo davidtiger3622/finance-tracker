@@ -11,7 +11,7 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 @router.post("/", response_model=TransactionResponse)
 def create_transaction(transaction: TransactionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    new_transaction = Transaction(**transaction.dict(), user_id=current_user.id)
+    new_transaction = Transaction(**transaction.model_dump(), user_id=current_user.id)
     db.add(new_transaction)
     db.commit()
     db.refresh(new_transaction)
@@ -41,7 +41,7 @@ def update_transaction(transaction_id: int, updated: TransactionUpdate, db: Sess
     transaction = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == current_user.id).first()
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    for key, value in updated.dict(exclude_unset=True).items():
+    for key, value in updated.model_dump(exclude_unset=True).items():
         setattr(transaction, key, value)
     db.commit()
     db.refresh(transaction)
