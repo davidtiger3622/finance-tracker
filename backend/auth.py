@@ -5,9 +5,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
+from models import User, RefreshToken
 from schemas import TokenData
 import os
+import secrets
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -18,6 +19,7 @@ if not SECRET_KEY:
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
 def hash_password(password: str):
@@ -54,3 +56,22 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
     return user
+
+def create_refresh_token(db: Session, user_id: int) -> str:
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(UTC) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    db_token = RefreshToken(token=token, user_id=user_id, expires_at=expires_at)
+    db.add(db_token)
+    db.commit()
+    return token
+
+
+def verify_refresh_token(db: Session, token: str) -> RefreshToken | None:
+    db_token = db.query(RefreshToken).filter(RefreshToken.token == token).first()
+    if not db_token:
+        return None
+    if db_token.revoked:
+        return None
+    if db_token.expires_at < datetime.now(UTC):
+        return None
+    return db_token

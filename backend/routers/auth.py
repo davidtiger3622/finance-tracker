@@ -2,9 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
-from schemas import UserCreate, UserResponse, Token
-from auth import hash_password, verify_password, create_access_token
+from models import User, RefreshToken
+from schemas import UserCreate, UserResponse, Token, RefreshRequest
+from auth import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+    verify_refresh_token,
+)
 from fastapi import Request
 from limiter import limiter
 
@@ -41,4 +47,38 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
             detail="Incorrect username or password"
         )
     access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_refresh_token(db, user_id=user.id)
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+
+@router.post("/refresh", response_model=Token)
+def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+    db_token = verify_refresh_token(db, payload.refresh_token)
+    if not db_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token"
+        )
+
+    user = db.query(User).filter(User.id == db_token.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User no longer exists"
+        )
+
+    db_token.revoked = True
+    new_refresh_token = create_refresh_token(db, user_id=user.id)
+    new_access_token = create_access_token(data={"sub": user.username})
+    db.commit()
+
+    return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
+
+
+@router.post("/logout")
+def logout(payload: RefreshRequest, db: Session = Depends(get_db)):
+    db_token = db.query(RefreshToken).filter(RefreshToken.token == payload.refresh_token).first()
+    if db_token:
+        db_token.revoked = True
+        db.commit()
+    return {"message": "Logged out successfully"}
