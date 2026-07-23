@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
     formData.append("password", password)
     const response = await api.post("/auth/login", formData)
     setToken(response.data.access_token)
+    localStorage.setItem("refresh_token", response.data.refresh_token)
     setUser(username)
     return response.data
   }
@@ -30,7 +31,16 @@ export const AuthProvider = ({ children }) => {
     return response.data
   }
 
-  const logout = () => {
+  const logout = async () => {
+    const refreshToken = localStorage.getItem("refresh_token")
+    if (refreshToken) {
+      try {
+        await api.post("/auth/logout", { refresh_token: refreshToken })
+      } catch (err) {
+        console.error("Logout request failed:", err)
+      }
+    }
+    localStorage.removeItem("refresh_token")
     setToken(null)
     setUser(null)
   }

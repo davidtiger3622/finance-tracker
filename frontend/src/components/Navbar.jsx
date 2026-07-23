@@ -7,11 +7,11 @@ const Navbar = () => {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     navigate("/login")
   }
-
+  
   return (
     <nav className="bg-gray-900 text-white px-4 md:px-6 py-4 shadow-lg">
       <div className="flex justify-between items-center">

@@ -17,7 +17,9 @@ describe('AuthContext', () => {
   })
 
   it('login sets token and persists it to localStorage', async () => {
-    api.post.mockResolvedValue({ data: { access_token: 'fake-token-123', token_type: 'bearer' } })
+    api.post.mockResolvedValue({
+      data: { access_token: 'fake-token-123', refresh_token: 'fake-refresh-123', token_type: 'bearer' },
+    })
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
 
     await act(async () => {
@@ -28,6 +30,7 @@ describe('AuthContext', () => {
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBe('fake-token-123')
     })
+    expect(localStorage.getItem('refresh_token')).toBe('fake-refresh-123')
     expect(api.post).toHaveBeenCalledWith('/auth/login', expect.any(URLSearchParams))
   })
 
@@ -47,7 +50,9 @@ describe('AuthContext', () => {
   })
 
   it('logout clears the token', async () => {
-    api.post.mockResolvedValue({ data: { access_token: 'fake-token', token_type: 'bearer' } })
+    api.post.mockResolvedValue({
+      data: { access_token: 'fake-token', refresh_token: 'fake-refresh-token', token_type: 'bearer' },
+    })
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
 
     await act(async () => {
@@ -55,13 +60,14 @@ describe('AuthContext', () => {
     })
     expect(result.current.token).toBe('fake-token')
 
-    act(() => {
-      result.current.logout()
+    await act(async () => {
+      await result.current.logout()
     })
 
     expect(result.current.token).toBeNull()
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull()
     })
+    expect(localStorage.getItem('refresh_token')).toBeNull()
   })
 })
