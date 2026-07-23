@@ -39,7 +39,7 @@ jobs:
         run: pytest -v
 
   frontend:
-    name: Frontend - Lint & Build
+    name: Frontend - Lint, Test & Build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,6 +61,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Run tests
+        run: npm run test
 
       - name: Build
         run: npm run build
